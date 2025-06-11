@@ -1,3 +1,5 @@
+import redis
+import pickle
 from typing import Self
 from passlib.context import CryptContext
 from jose import JWTError, jwt
@@ -14,6 +16,7 @@ class Auth:
 
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+    r = redis.Redis(host="localhost", port=6379, db=0)
 
     def verify_password(self, plain_password, hashed_password):
         return self.pwd_context.verify(plain_password, hashed_password)
@@ -66,7 +69,16 @@ class Auth:
         except JWTError as e:
             raise credentials_exception
         user_service = UserService(db)
-        user = await user_service.get_user_by_email(email)
+
+        user = self.r.get(f"user:{email}")
+        if user is None:
+            user = await user_service.get_user_by_email(email)
+            if user is None:
+                raise credentials_exception
+            self.r.set(f"user:{email}", pickle.dumps(user))
+            self.r.expire(f"user:{email}", 900)
+        else:
+            user = pickle.loads(user)
 
         if user is None:
             raise credentials_exception

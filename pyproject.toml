@@ -26,6 +26,8 @@ python-jose = {extras = ["cryptography"], version = "^3.5.0"}
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 bcrypt = "==4.0.1"
 cloudinary = "^1.44.0"
+redis = "^6.2.0"
+redis-lru = "^0.1.2"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
