@@ -10,13 +10,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.conf.config import settings
 from src.services.users import UserService
 from src.database.db import get_db
+from src.database.models import User
+from src.database.models import UserRole
+from src.conf.config import settings
 
 
 class Auth:
 
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
-    r = redis.Redis(host="localhost", port=6379, db=0)
+    r = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=0)
 
     def verify_password(self, plain_password, hashed_password):
         return self.pwd_context.verify(plain_password, hashed_password)

@@ -1,7 +1,8 @@
 from fastapi import FastAPI, Request, status
 from starlette.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
 from slowapi.errors import RateLimitExceeded
 from src.api import contacts, utils, auth, users
 
@@ -32,6 +33,14 @@ app.add_middleware(
 @app.get("/", include_in_schema=False)
 async def root():
     return RedirectResponse(url="/docs")
+
+
+# STATIC PAGE
+@app.get("/change_password/{token}", response_class=HTMLResponse)
+async def change_password_page(request: Request, token: str):
+    templates = Jinja2Templates(directory="src/services/templates")
+    context = {"request": request, "host": request.base_url, "token": token}
+    return templates.TemplateResponse("change_password.html", context)
 
 
 # ROUTERS

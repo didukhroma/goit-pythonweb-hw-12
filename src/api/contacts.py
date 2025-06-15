@@ -8,6 +8,7 @@ from src.schemas.contacts import ContactBase, ContactResponse
 from src.services.contacts import ContactService
 from src.database.models import User
 
+
 router = APIRouter(prefix="/contacts", tags=["Contacts"])
 
 
