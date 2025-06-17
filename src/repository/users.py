@@ -75,10 +75,11 @@ class UserRepository:
         Returns:
             None
         """
-
         user = await self.get_user_by_email(user_email)
         user.confirmed_email = True
         await self.db.commit()
+        await self.db.refresh(user)
+        return user
 
     async def update_avatar(self: Self, email: str, url: str) -> UserResponse:
         """
@@ -113,3 +114,4 @@ class UserRepository:
         user.password = password
         await self.db.commit()
         await self.db.refresh(user)
+        return user
