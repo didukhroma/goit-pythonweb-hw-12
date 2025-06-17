@@ -19,7 +19,6 @@ pydantic = {extras = ["email"], version = "^2.0"}
 pydantic-settings = "^2.9.1"
 libgravatar = "^1.0.4"
 python-multipart = "^0.0.20"
-logging = "^0.4.9.6"
 slowapi = "^0.1.9"
 fastapi-mail = "^1.5.0"
 python-jose = {extras = ["cryptography"], version = "^3.5.0"}
@@ -28,6 +27,18 @@ bcrypt = "==4.0.1"
 cloudinary = "^1.44.0"
 redis = "^6.2.0"
 redis-lru = "^0.1.2"
+
+
+[tool.poetry.group.dev.dependencies]
+sphinx = "^8.2.3"
+dotenv = "^0.9.9"
+pytest = "^8.4.0"
+pytest-asyncio = "^1.0.0"
+logging = "^0.4.9.6"
+pytest-cov = "^6.2.1"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

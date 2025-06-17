@@ -4,6 +4,8 @@ from pydantic import BaseModel, Field, ConfigDict, EmailStr
 
 
 class ContactBase(BaseModel):
+    """Base model for contact."""
+
     first_name: str = Field(min_length=2)
     last_name: str = Field(min_length=2)
     email: EmailStr
@@ -13,6 +15,8 @@ class ContactBase(BaseModel):
 
 
 class ContactResponse(ContactBase):
+    """Response model for contact."""
+
     id: int
     first_name: str
     last_name: str

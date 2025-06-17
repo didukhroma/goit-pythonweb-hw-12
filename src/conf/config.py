@@ -4,6 +4,8 @@ from typing import Self
 
 
 class Settings(BaseSettings):
+    """Settings for the FastAPI application."""
+
     # DB
     POSTGRES_DB: str
     POSTGRES_USER: str
@@ -39,6 +41,12 @@ class Settings(BaseSettings):
 
     @property
     def database_url(self: Self):
+        """
+        Builds the database connection URL based on the configured settings.
+
+        Returns:
+            str: The database connection URL.
+        """
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
 

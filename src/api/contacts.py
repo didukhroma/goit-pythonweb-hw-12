@@ -22,6 +22,19 @@ async def get_contacts(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(auth_service.get_current_user),
 ):
+    """
+    Get list of contacts.
+
+    Args:
+        name: Name of the contact.
+        surname: Surname of the contact.
+        email: Email of the contact.
+        skip: Number of items to skip.
+        limit: Number of items to return.
+
+    Returns:
+        List of ContactResponse objects.
+    """
     contact_service = ContactService(db)
     contacts = await contact_service.get_contacts(
         skip, limit, name, surname, email, user
@@ -35,6 +48,18 @@ async def create_contact(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(auth_service.get_current_user),
 ):
+    """
+    Create a new contact.
+
+    Args:
+        body: ContactBase object with the data to create the contact.
+
+    Returns:
+        ContactResponse object with the created contact data.
+
+    Raises:
+        HTTPException: If the email is already in use.
+    """
     contact_service = ContactService(db)
     contact = await contact_service.create_contact(body, user)
     if contact is None:
@@ -48,6 +73,18 @@ async def get_contact_by_id(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(auth_service.get_current_user),
 ):
+    """
+    Get contact by id.
+
+    Args:
+        contact_id: Id of the contact.
+
+    Returns:
+        ContactResponse object with the contact data.
+
+    Raises:
+        HTTPException: If the contact is not found.
+    """
     contact_service = ContactService(db)
     contact = await contact_service.get_contact_by_id(contact_id, user)
     if contact is None:
@@ -64,6 +101,20 @@ async def update_contact(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(auth_service.get_current_user),
 ):
+    """
+    Update a contact.
+
+    Args:
+        contact_id: Id of the contact.
+        body: ContactBase object with the data to update the contact.
+
+    Returns:
+        ContactResponse object with the updated contact data.
+
+    Raises:
+        HTTPException: If the contact is not found.
+    """
+
     contact_service = ContactService(db)
     contact = await contact_service.update_contact(contact_id, body, user)
     if contact is None:
@@ -79,6 +130,15 @@ async def delete_contact(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(auth_service.get_current_user),
 ):
+    """
+    Delete a contact.
+
+    Args:
+        contact_id: Id of the contact to delete.
+
+    Raises:
+        HTTPException: If the contact is not found.
+    """
     contact_service = ContactService(db)
     contact = await contact_service.delete_contact(contact_id, user)
     if contact is None:
@@ -96,6 +156,16 @@ async def get_upcomming_birthdays(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(auth_service.get_current_user),
 ):
+    """
+    Get the list of contacts with upcomming birthdays.
+
+    Args:
+        skip: The number of items to skip.
+        limit: The number of items to return.
+
+    Returns:
+        List of ContactResponse objects with the contacts data.
+    """
     contact_service = ContactService(db)
     contacts = await contact_service.birthdays(skip, limit, user)
     return contacts

@@ -27,6 +27,16 @@ allowed_operation_avatar = RoleAccess([UserRole.ADMIN])
 async def get_me(
     request: Request, user: UserModel = Depends(auth_service.get_current_user)
 ):
+    """
+    Get the current user.
+
+    Args:
+        request (Request): The request object.
+        user (UserModel): The current user.
+
+    Returns:
+        UserModel: The current user.
+    """
     return user
 
 
@@ -40,6 +50,18 @@ async def update_avatar(
     user: UserModel = Depends(auth_service.get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    """
+    Update the current user's avatar.
+
+    Args:
+        file (UploadFile): The new avatar to upload.
+        user (UserModel): The current user.
+        db (AsyncSession): The database session.
+
+    Returns:
+        UserModel: The updated user.
+    """
+
     avatar_url = UploadFileService(
         settings.CLOUDINARY_NAME,
         settings.CLOUDINARY_API_KEY,
