@@ -59,6 +59,64 @@ async def test_create_contact(contact_repository, mock_session, user):
 
 
 @pytest.mark.asyncio
+async def test_create_contact_user_not_fount(contact_repository, mock_session, user):
+    contact_data = ContactBase(
+        first_name="John",
+        last_name="Doe",
+        email="test@test.com",
+        phone="+1234567890",
+        birthday="1999-01-01",
+        info="Test contact",
+    )
+    mock_result = MagicMock()
+    mock_result.scalar_one_or_none.return_value = None
+    mock_session.execute = AsyncMock(return_value=mock_result)
+
+    user.id = None
+    result = await contact_repository.create_contact(contact_data, user)
+
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_create_contact_already_exists(contact_repository, mock_session, user):
+    contact_data = ContactBase(
+        first_name="John",
+        last_name="Doe",
+        email="test@test.com",
+        phone="+1234567890",
+        birthday="1999-01-01",
+        info="Test contact",
+    )
+
+    # Simulate user having a valid ID
+    user.id = 1
+
+    # Mock that contact with this email already exists
+    mock_existing_contact = Contact(
+        first_name="John",
+        last_name="Doe",
+        email="test@test.com",
+        phone="+1234567890",
+        birthday=datetime(1999, 1, 1),
+        info="Existing contact",
+        user_id=user.id,
+    )
+
+    # Mock `get_contact_by_email` to return an existing contact
+    contact_repository.get_contact_by_email = AsyncMock(
+        return_value=mock_existing_contact
+    )
+
+    result = await contact_repository.create_contact(contact_data, user)
+
+    assert result is None
+    contact_repository.get_contact_by_email.assert_awaited_once_with(
+        "test@test.com", user
+    )
+
+
+@pytest.mark.asyncio
 async def test_get_contacts(contact_repository, mock_session, user):
     mock_result = MagicMock()
     mock_result.scalars.return_value.all.return_value = [
@@ -73,7 +131,9 @@ async def test_get_contacts(contact_repository, mock_session, user):
     ]
     mock_session.execute = AsyncMock(return_value=mock_result)
 
-    contacts = await contact_repository.get_contacts(0, 10, None, None, None, user)
+    contacts = await contact_repository.get_contacts(
+        0, 10, "John", "Doe", "test@test.com", user
+    )
     assert len(contacts) == 1
     assert contacts[0].first_name == "John"
     assert contacts[0].last_name == "Doe"
@@ -173,6 +233,17 @@ async def test_delete_contact(contact_repository, mock_session, user):
     assert mock_session.execute.call_count == 1
     mock_session.delete.assert_called_once_with(existing_contact)
     mock_session.commit.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_delete_contact_user_not_fount(contact_repository, mock_session, user):
+    mock_result = MagicMock()
+    mock_result.scalar_one_or_none.return_value = None
+    mock_session.execute = AsyncMock(return_value=mock_result)
+
+    result = await contact_repository.delete_contact(1, user)
+
+    assert result is None
 
 
 @pytest.mark.asyncio

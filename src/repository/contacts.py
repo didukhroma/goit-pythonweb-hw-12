@@ -35,6 +35,8 @@ class ContactRepository:
         Returns:
             Contact | None: The created contact or None if the contact already exists.
         """
+        if user is None or not getattr(user, "id", None):
+            return None
         contact = Contact(**body.model_dump(exclude_unset=True), user=user)
 
         exist_contact = await self.get_contact_by_email(contact.email, user)
