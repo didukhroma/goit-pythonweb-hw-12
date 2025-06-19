@@ -3,6 +3,11 @@ import asyncio
 import pytest
 import pytest_asyncio
 
+from slowapi import Limiter
+from slowapi.errors import _rate_limit_exceeded_handler
+from slowapi.middleware import SlowAPIMiddleware
+from unittest.mock import AsyncMock
+
 from fastapi.testclient import TestClient
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
@@ -67,3 +72,11 @@ def client():
 async def get_token():
     token = await auth_service.create_access_token(data={"sub": test_user["email"]})
     return token
+
+
+@pytest.fixture(autouse=True)
+def disable_rate_limiting(monkeypatch):
+    monkeypatch.setattr(
+        "main.limiter.limit",  # patch the actual limiter instance used by FastAPI
+        lambda *args, **kwargs: lambda f: f,
+    )

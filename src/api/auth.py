@@ -98,7 +98,7 @@ async def login(
     if user is None or not auth_service.verify_password(body.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid login or password ",
+            detail="Invalid login or password",
         )
     if not user.confirmed_email:
         raise HTTPException(
@@ -113,7 +113,7 @@ async def login(
 @router.get("/confirmed_email/{token}")
 async def confirmed_email(token: str, db: AsyncSession = Depends(get_db)):
     """
-    Confirms the email for the user with the given token.
+    Confirm the email of a user with the given token.
 
     Args:
         token (str): The token to confirm the email.
@@ -122,8 +122,9 @@ async def confirmed_email(token: str, db: AsyncSession = Depends(get_db)):
         HTTPException: If the user is not found or the email is already confirmed.
 
     Returns:
-        dict: A dict with a message indicating if the email was confirmed or not.
+        dict: A message indicating that the email has been confirmed.
     """
+
     user_service = UserService(db)
     email = auth_service.get_email_from_token(token)
     user = await user_service.get_user_by_email(email)
@@ -132,7 +133,10 @@ async def confirmed_email(token: str, db: AsyncSession = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST, detail="Verification error"
         )
     if user.confirmed_email:
-        return {"message": "Your email is already confirmed"}
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Your email is already confirmed",
+        )
     await user_service.confirmed_email(email)
     return {"message": "Email confirmed"}
 
@@ -163,7 +167,10 @@ async def request_email(
     user = await user_service.get_user_by_email(body.email)
     if user:
         if user.confirmed_email:
-            return {"message": "Your email is already confirmed"}
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Your email is already confirmed",
+            )
         background_task.add_task(
             send_email, user.email, user.username, str(request.base_url)
         )

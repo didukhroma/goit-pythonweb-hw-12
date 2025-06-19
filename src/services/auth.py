@@ -3,7 +3,7 @@ import pickle
 from typing import Self
 from passlib.context import CryptContext
 from jose import JWTError, jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import Depends, status, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -62,9 +62,13 @@ class Auth:
         """
 
         to_encode = data.copy()
-        expire = datetime.utcnow() + timedelta(minutes=expires_delta)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=expires_delta)
         to_encode.update(
-            {"iat": datetime.utcnow(), "exp": expire, "scope": "access_token"}
+            {
+                "iat": datetime.now(timezone.utc),
+                "exp": expire,
+                "scope": "access_token",
+            }
         )
         encoded_access_token = jwt.encode(
             to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM
@@ -83,9 +87,9 @@ class Auth:
         """
 
         to_encode = data.copy()
-        expire = datetime.utcnow() + timedelta(hours=1)
+        expire = datetime.now(timezone.utc) + timedelta(hours=1)
         to_encode.update(
-            {"iat": datetime.utcnow(), "exp": expire, "scope": "email_token"}
+            {"iat": datetime.now(timezone.utc), "exp": expire, "scope": "email_token"}
         )
         token = jwt.encode(
             to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM
