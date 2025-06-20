@@ -3,9 +3,6 @@ import asyncio
 import pytest
 import pytest_asyncio
 
-from slowapi import Limiter
-from slowapi.errors import _rate_limit_exceeded_handler
-from slowapi.middleware import SlowAPIMiddleware
 from unittest.mock import AsyncMock
 
 from fastapi.testclient import TestClient
@@ -33,6 +30,8 @@ test_user = {
     "username": "testuser",
     "email": "test@test.com",
     "password": "testpassword",
+    "role": "USER",
+    "avatar": "https://example.com/avatar.jpg",
 }
 
 
@@ -74,9 +73,9 @@ async def get_token():
     return token
 
 
-@pytest.fixture(autouse=True)
-def disable_rate_limiting(monkeypatch):
-    monkeypatch.setattr(
-        "main.limiter.limit",  # patch the actual limiter instance used by FastAPI
-        lambda *args, **kwargs: lambda f: f,
-    )
+@pytest.fixture
+def redis_client(request):
+    import fakeredis
+
+    redis_client = fakeredis.FakeRedis()
+    return redis_client
