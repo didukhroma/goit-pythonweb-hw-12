@@ -3,7 +3,7 @@ from unittest.mock import Mock
 import pytest
 from sqlalchemy import select
 from src.database.models import User
-from tests.conftest import TestingSessionLocal
+from tests.conftest import TestingSessionLocal, test_user
 from src.services.auth import auth_service
 
 user_data = {
@@ -121,24 +121,25 @@ def test_validation_error_login(client):
 async def test_confirmed_email(client):
     async with TestingSessionLocal() as session:
         current_user = await session.execute(
-            select(User).where(User.email == user_data.get("email"))
+            select(User).where(User.email == test_user.get("email"))
         )
         current_user = current_user.scalar_one_or_none()
         if current_user:
             current_user.confirmed_email = False
             await session.commit()
-    token = auth_service.create_email_token(data={"email": user_data.get("email")})
-    response = client.get(f"/api/auth/confirmed_email/{token}")
+    token = auth_service.create_email_token(data={"sub": test_user["email"]})
+    response = client.get(f"api/auth/confirmed_email/{token}")
 
     assert response.status_code == 200
     assert response.json() == {"message": "Email confirmed"}
 
 
-# def test_confirmed_email_already_confirmed(client, get_token):
-#     response = client.get(f"/api/auth/confirmed_email/{get_token}")
+def test_confirmed_email_already_confirmed(client):
+    token = auth_service.create_email_token(data={"sub": test_user["email"]})
+    response = client.get(f"/api/auth/confirmed_email/{token}")
 
-#     assert response.status_code == 409
-#     assert response.json() == {"detail": "Your email is already confirmed"}
+    assert response.status_code == 409
+    assert response.json() == {"detail": "Your email is already confirmed"}
 
 
 def test_confirmed_email_invalid_token(client):
@@ -148,12 +149,12 @@ def test_confirmed_email_invalid_token(client):
     assert response.json() == {"detail": "Invalid token for email verification"}
 
 
-# def test_request_email_already_confirmed(client):
-#     response = client.post(
-#         "api/auth/request_email", json={"email": user_data.get("email")}
-#     )
-#     assert response.status_code == 409
-#     assert response.json() == {"detail": "Your email is already confirmed"}
+def test_request_email_already_confirmed(client):
+    response = client.post(
+        "api/auth/request_email", json={"email": user_data.get("email")}
+    )
+    assert response.status_code == 409
+    assert response.json() == {"detail": "Your email is already confirmed"}
 
 
 @pytest.mark.asyncio
@@ -194,26 +195,28 @@ def test_forgot_password_wrong_email(client):
     assert response.json() == {"detail": "Verification error"}
 
 
-# @pytest.mark.asyncio
-# async def test_forgot_password(client):
-#     async with TestingSessionLocal() as session:
-#         current_user = await session.execute(
-#             select(User).where(User.email == user_data.get("email"))
-#         )
-#         current_user = current_user.scalar_one_or_none()
-#         if current_user:
-#             current_user.confirmed_email = True
-#             await session.commit()
-#     response = client.post(
-#         "api/auth/forgot_password", json={"email": user_data.get("email")}
-#     )
-#     assert response.status_code == 200
-#     assert response.json() == {"message": "Check your email for confirmation"}
+@pytest.mark.asyncio
+async def test_forgot_password(client):
+    async with TestingSessionLocal() as session:
+        current_user = await session.execute(
+            select(User).where(User.email == user_data.get("email"))
+        )
+        current_user = current_user.scalar_one_or_none()
+        if current_user:
+            current_user.confirmed_email = True
+            await session.commit()
+    response = client.post(
+        "api/auth/forgot_password", json={"email": user_data.get("email")}
+    )
+    assert response.status_code == 200
+    assert response.json() == {"message": "Check your email for confirmation"}
 
 
-# def test_reset_password(client, get_token):
-#     response = client.post(
-#         f"api/auth/reset_password/{get_token}", data={"password": "new_password"}
-#     )
-#     assert response.status_code == 200
-#     assert response.json() == {"message": "Password successfully changed"}
+@pytest.mark.asyncio
+async def test_post_reset_password(client):
+    token = auth_service.create_email_token(data={"sub": test_user["email"]})
+    response = client.post(
+        f"api/auth/reset_password/{token}", data={"password": "newpassword"}
+    )
+    assert response.status_code == 200
+    assert response.json() == {"message": "Password successfully changed"}

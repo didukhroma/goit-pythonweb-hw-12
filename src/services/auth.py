@@ -13,6 +13,9 @@ from src.database.db import get_db
 from src.database.models import User
 from src.database.models import UserRole
 from src.conf.config import settings
+import logging
+
+logger = logging.getLogger()
 
 
 class Auth:
