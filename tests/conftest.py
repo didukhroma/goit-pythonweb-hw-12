@@ -73,9 +73,8 @@ async def get_token():
     return token
 
 
-@pytest.fixture
-def redis_client(request):
+@pytest.fixture(autouse=True)
+def setup_redis_for_auth():
     import fakeredis
 
-    redis_client = fakeredis.FakeRedis()
-    return redis_client
+    auth_service.r = fakeredis.FakeRedis()

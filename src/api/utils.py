@@ -7,7 +7,7 @@ from src.database.db import get_db
 router = APIRouter(tags=["Utils"])
 
 
-@router.get("/healtchchecker")
+@router.get("/healthchecker")
 async def healthchecker(db: AsyncSession = Depends(get_db)):
     """
     Health check endpoint to verify database connectivity.

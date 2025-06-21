@@ -53,7 +53,9 @@ async def root():
 
 
 # STATIC PAGE
-@app.get("/change_password/{token}", response_class=HTMLResponse)
+@app.get(
+    "/change_password/{token}", response_class=HTMLResponse, include_in_schema=False
+)
 async def change_password_page(request: Request, token: str):
     """
     Generates a static HTML page for changing a user's password.

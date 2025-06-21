@@ -52,7 +52,7 @@ class Auth:
         """
         return self.pwd_context.hash(password)
 
-    async def create_access_token(self, data: dict, expires_delta: float = 15):
+    def create_access_token(self, data: dict, expires_delta: float = 15):
         """
         Creates a JWT access token for authentication.
 
@@ -77,6 +77,58 @@ class Auth:
             to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM
         )
         return encoded_access_token
+
+    def create_refresh_token(
+        self,
+        data: dict,
+    ):
+        """
+        Creates a JWT refresh token for update access token.
+
+        Args:
+            data (dict): The payload data to include in the token.
+
+        Returns:
+            str: The encoded JWT access token.
+        """
+
+        to_encode = data.copy()
+        expire = datetime.now(timezone.utc) + timedelta(days=15)
+        to_encode.update(
+            {
+                "iat": datetime.now(timezone.utc),
+                "exp": expire,
+                "scope": "refresh_token",
+            }
+        )
+        encoded_access_token = jwt.encode(
+            to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM
+        )
+        return encoded_access_token
+
+    async def verify_refresh_token(self, refresh_token: str, db: AsyncSession):
+        """
+        Verifies the validity of a JWT refresh token.
+
+        Args:
+            token (str): The JWT refresh token to verify.
+
+        Returns:
+            bool: True if the token is valid, False otherwise.
+        """
+        try:
+            payload = jwt.decode(
+                refresh_token, settings.JWT_SECRET, algorithms=settings.JWT_ALGORITHM
+            )
+            username: str = payload.get("sub")
+            token_type: str = payload.get("scope")
+            if username is None or token_type != "refresh_token":
+                return None
+            user_service = UserService(db)
+            user = await user_service.get_user_by_name(username)
+            return user
+        except JWTError:
+            return None
 
     def create_email_token(self, data: dict):
         """

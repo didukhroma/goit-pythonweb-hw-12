@@ -19,6 +19,7 @@ from src.schemas.users import (
     UserCreate,
     TokenModel,
     RequestEmail,
+    RefreshTokenResponse,
 )
 from src.database.db import get_db
 from src.services.users import UserService
@@ -26,7 +27,6 @@ from src.services.auth import auth_service
 from src.services.email import send_email
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
-logger = logging.getLogger()
 
 
 @router.post(
@@ -71,9 +71,9 @@ async def signup(
 
     user.password = auth_service.get_password_hash(user.password)
     new_user = await user_service.create_user(user)
-    background_task.add_task(
-        send_email, new_user.email, new_user.username, str(request.base_url)
-    )
+    # background_task.add_task(
+    #     send_email, new_user.email, new_user.username, str(request.base_url)
+    # )
     return new_user
 
 
@@ -106,8 +106,15 @@ async def login(
         )
 
     # Generate JWT
-    access_token = await auth_service.create_access_token(data={"sub": user.email})
-    return {"access_token": access_token, "token_type": "bearer"}
+    access_token = auth_service.create_access_token(data={"sub": user.email})
+    refresh_token = auth_service.create_refresh_token(data={"sub": user.username})
+    user.refresh_token = refresh_token
+    await db.commit()
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+    }
 
 
 @router.get("/confirmed_email/{token}")
@@ -260,3 +267,35 @@ async def post_reset_password(
     hashed_password = auth_service.get_password_hash(password)
     await user_service.reset_password(hashed_password, email)
     return {"message": "Password successfully changed"}
+
+
+@router.post("/refresh_token", response_model=TokenModel)
+async def refresh_token(
+    token_data: RefreshTokenResponse, db: AsyncSession = Depends(get_db)
+):
+    """
+    Refreshes the access token using the refresh token.
+
+    Args:
+        token (RefreshTokenModel): The refresh token.
+
+    Returns:
+        TokenModel: The new access token and token type.
+    """
+
+    user = await auth_service.verify_refresh_token(token_data.refresh_token, db)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token",
+        )
+    # Generate JWT
+    new_access_token = auth_service.create_access_token(data={"sub": user.email})
+    new_refresh_token = auth_service.create_refresh_token(data={"sub": user.username})
+    user.refresh_token = new_refresh_token
+    await db.commit()
+    return {
+        "access_token": new_access_token,
+        "refresh_token": new_refresh_token,
+        "token_type": "bearer",
+    }

@@ -148,7 +148,7 @@ async def delete_contact(
 
 
 @router.get(
-    "/birthdays/", response_model=List[ContactResponse], status_code=status.HTTP_200_OK
+    "/birthdays", response_model=List[ContactResponse], status_code=status.HTTP_200_OK
 )
 async def get_upcomming_birthdays(
     skip: int = 0,

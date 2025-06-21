@@ -119,6 +119,8 @@ class User(Base):
     :vartype created_at: datetime
     :ivar updated_at: Timestamp of the last update to the user account (UTC with timezone).
     :vartype updated_at: datetime
+    :ivar refresh_token: Refresh token for token-based authentication.
+    :vartype id: str (max 255 chars)
 
     # Blank line!
     :raises sqlalchemy.exc.IntegrityError: If a new user violates unique constraints (username, email).
@@ -134,6 +136,7 @@ class User(Base):
     role: Mapped[UserRole] = mapped_column(
         SqlEnum(UserRole), default=UserRole.USER, nullable=False
     )
+    refresh_token: Mapped[str] = mapped_column(String(255), nullable=True)
     created_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )

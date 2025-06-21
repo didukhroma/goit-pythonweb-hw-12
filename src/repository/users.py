@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.models import User
-from src.schemas.users import UserModel, UserResponse
+from src.schemas.users import UserModel, UserResponse, RefreshTokenResponse
 
 
 class UserRepository:
@@ -99,6 +99,25 @@ class UserRepository:
         await self.db.refresh(user)
         return user
 
+    async def update_refresh_token(
+        self: Self, refresh_token: str, email: str
+    ) -> UserResponse:
+        """
+        Updates the refresh token for a user identified by their email.
+
+        Args:
+            refresh_token (str): The new refresh token to be set for the user.
+
+        Returns:
+            UserResponse: The updated user with the new refresh token.
+        """
+
+        user = await self.get_user_by_email(email)
+        user.refresh_token = refresh_token
+        await self.db.commit()
+        await self.db.refresh(user)
+        return user
+
     async def reset_password(self: Self, password: str, email: str) -> UserResponse:
         """
         Resets the password for a user identified by their email.
@@ -115,3 +134,16 @@ class UserRepository:
         await self.db.commit()
         await self.db.refresh(user)
         return user
+
+    async def get_refresh_token(self: Self, email: str) -> RefreshTokenResponse:
+        """
+        Retrieves the refresh token for a user identified by their email.
+
+        Args:
+            email (str): The email of the user whose refresh token is to be retrieved.
+
+        Returns:
+            UserResponse: The user with the refresh token.
+        """
+        user = await self.get_user_by_email(email)
+        return user.refresh_token

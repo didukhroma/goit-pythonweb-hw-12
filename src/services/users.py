@@ -88,6 +88,32 @@ class UserService:
 
         return await self.repository.update_avatar(email, avatar_url)
 
+    async def update_token(self: Self, refresh_token: str, email: str):
+        """
+        Updates the token for a user identified by their email.
+
+        Args:
+            email (str): The email of the user whose token is to be updated.
+
+        Returns:
+            UserResponse: The updated user with the new token.
+        """
+
+        return await self.repository.update_refresh_token(refresh_token, email)
+
+    async def get_refresh_token(self: Self, email: str):
+        """
+        Retrieves the refresh token for a user identified by their email.
+
+        Args:
+            email (str): The email of the user whose refresh token is to be retrieved.
+
+        Returns:
+            UserResponse: The user with the refresh token.
+        """
+
+        return await self.repository.get_refresh_token(email)
+
     async def reset_password(self: Self, password: str, email: str):
         """
         Resets the password for a user identified by their email.

@@ -39,9 +39,16 @@ class RequestEmail(BaseModel):
     email: EmailStr
 
 
+class RefreshTokenResponse(BaseModel):
+    """Refresh token model."""
+
+    refresh_token: str
+
+
 class TokenModel(BaseModel):
     """Token model."""
 
+    refresh_token: str
     access_token: str
     token_type: str = "bearer"
 
