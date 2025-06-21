@@ -79,6 +79,7 @@ async def test_login(client):
     assert response.status_code == 200, response.text
     data = response.json()
     assert "access_token" in data
+    assert "refresh_token" in data
     assert "token_type" in data
 
 
@@ -115,6 +116,28 @@ def test_validation_error_login(client):
     assert response.status_code == 422, response.text
     data = response.json()
     assert "detail" in data
+
+
+@pytest.mark.asyncio
+async def test_refresh_token(client):
+    async with TestingSessionLocal() as session:
+        current_user = await session.execute(
+            select(User).where(User.email == user_data.get("email"))
+        )
+        current_user = current_user.scalar_one_or_none()
+        if current_user:
+            current_user.confirmed_email = True
+            await session.commit()
+    response = client.post(
+        "api/auth/refresh_token",
+        json={
+            "refresh_token": current_user.refresh_token,
+        },
+    )
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert "access_token" in data
+    assert "refresh_token" in data
 
 
 @pytest.mark.asyncio

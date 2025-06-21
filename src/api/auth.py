@@ -71,9 +71,9 @@ async def signup(
 
     user.password = auth_service.get_password_hash(user.password)
     new_user = await user_service.create_user(user)
-    # background_task.add_task(
-    #     send_email, new_user.email, new_user.username, str(request.base_url)
-    # )
+    background_task.add_task(
+        send_email, new_user.email, new_user.username, str(request.base_url)
+    )
     return new_user
 
 

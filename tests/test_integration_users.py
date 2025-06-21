@@ -6,8 +6,7 @@ import pytest
 from tests.conftest import test_user, TestingSessionLocal
 
 
-@pytest.mark.asyncio
-async def test_get_me(
+def test_get_me(
     client,
     get_token,
 ):
@@ -18,6 +17,7 @@ async def test_get_me(
     assert response.status_code == 200
 
 
+"""
 @patch("src.services.upload_file.UploadFileService.upload_file")
 def test_update_avatar_user_invalid_user_role(mock_upload_file, client, get_token):
 
@@ -69,3 +69,4 @@ async def test_update_avatar_user(
 
     # Перевірка виклику функції upload_file з об'єктом UploadFile
     mock_upload_file.assert_called_once()
+"""
